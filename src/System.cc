@@ -23,15 +23,18 @@
 #include "System.h"
 #include "Converter.h"
 #include <thread>
-#include <pangolin/pangolin.h>
 #include <iomanip>
+
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+#include <pangolin/pangolin.h>
+#endif
 
 namespace ORB_SLAM2
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-               const bool bUseViewer):mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),mbActivateLocalizationMode(false),
-        mbDeactivateLocalizationMode(false)
+System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool useInternalViewer, Viewer* viewer) :
+    mSensor(sensor), mpViewer(NULL), mpFrameDrawer(NULL), mpMapDrawer(NULL),
+    mbReset(false),mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
     cout << endl <<
@@ -78,8 +81,22 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpMap = new Map();
 
     //Create Drawers. These are used by the Viewer
-    mpFrameDrawer = new FrameDrawer(mpMap);
-    mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+    if (useInternalViewer)
+    {
+        mpFrameDrawer = new FrameDrawer(mpMap);
+        mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
+    }
+#else
+    if (viewer)
+    {
+        mpFrameDrawer = viewer->GetFrameDrawer();
+        if (mpFrameDrawer) mpFrameDrawer->SetMap(mpMap);
+
+        mpMapDrawer = viewer->GetMapDrawer();
+        if (mpMapDrawer) mpMapDrawer->SetMap(mpMap);
+    }
+#endif
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
@@ -95,12 +112,21 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
 
     //Initialize the Viewer thread and launch
-    if(bUseViewer)
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+    if (useInternalViewer)
     {
         mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile);
         mptViewer = new thread(&Viewer::Run, mpViewer);
-        mpTracker->SetViewer(mpViewer);
     }
+#else
+    if (viewer)
+    {
+        mpViewer = viewer;
+        mpViewer->SetTracker(mpTracker);
+    }
+#endif
+
+    mpTracker->SetViewer(mpViewer);
 
     //Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
@@ -315,8 +341,10 @@ void System::Shutdown()
         usleep(5000);
     }
 
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
     if(mpViewer)
         pangolin::BindToContext("ORB-SLAM2: Map Viewer");
+#endif
 }
 
 void System::SaveTrajectoryTUM(const string &filename)

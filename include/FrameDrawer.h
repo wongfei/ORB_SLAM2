@@ -37,6 +37,8 @@ namespace ORB_SLAM2
 class Tracking;
 class Viewer;
 
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+
 class FrameDrawer
 {
 public:
@@ -67,6 +69,18 @@ protected:
 
     std::mutex mMutex;
 };
+
+#else
+
+class FrameDrawer
+{
+public:
+	virtual ~FrameDrawer() {}
+	virtual void SetMap(Map* pMap) = 0;
+	virtual void Update(Tracking *pTracker) = 0;
+};
+
+#endif // ORB_ENABLE_INTERNAL_VIEWER
 
 } //namespace ORB_SLAM
 

@@ -18,6 +18,8 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+
 #include "FrameDrawer.h"
 #include "Tracking.h"
 
@@ -201,3 +203,5 @@ void FrameDrawer::Update(Tracking *pTracker)
 }
 
 } //namespace ORB_SLAM
+
+#endif // ORB_ENABLE_INTERNAL_VIEWER

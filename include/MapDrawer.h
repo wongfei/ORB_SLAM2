@@ -24,12 +24,17 @@
 #include"Map.h"
 #include"MapPoint.h"
 #include"KeyFrame.h"
+
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
 #include<pangolin/pangolin.h>
+#endif
 
 #include<mutex>
 
 namespace ORB_SLAM2
 {
+
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
 
 class MapDrawer
 {
@@ -58,6 +63,18 @@ private:
 
     std::mutex mMutexCamera;
 };
+
+#else
+
+class MapDrawer
+{
+public:
+	virtual ~MapDrawer() {}
+	virtual void SetMap(Map* pMap) = 0;
+	virtual void SetCurrentCameraPose(const cv::Mat &Tcw) = 0;
+};
+
+#endif // ORB_ENABLE_INTERNAL_VIEWER
 
 } //namespace ORB_SLAM
 

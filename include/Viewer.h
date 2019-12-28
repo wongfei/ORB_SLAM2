@@ -37,6 +37,8 @@ class FrameDrawer;
 class MapDrawer;
 class System;
 
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+
 class Viewer
 {
 public:
@@ -82,6 +84,26 @@ private:
     std::mutex mMutexStop;
 
 };
+
+#else
+
+class Viewer
+{
+public:
+	virtual ~Viewer() {}
+	virtual void Run() = 0;
+	virtual void RequestFinish() = 0;
+	virtual void RequestStop() = 0;
+	virtual bool isFinished() = 0;
+	virtual bool isStopped() = 0;
+	virtual void Release() = 0;
+
+	virtual FrameDrawer* GetFrameDrawer() = 0;
+	virtual MapDrawer* GetMapDrawer() = 0;
+	virtual void SetTracker(Tracking *pTracking) = 0;
+};
+
+#endif // ORB_ENABLE_INTERNAL_VIEWER
 
 }
 

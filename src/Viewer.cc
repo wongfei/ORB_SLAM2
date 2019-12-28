@@ -18,6 +18,8 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if defined(ORB_ENABLE_INTERNAL_VIEWER)
+
 #include "Viewer.h"
 #include <pangolin/pangolin.h>
 
@@ -230,3 +232,5 @@ void Viewer::Release()
 }
 
 }
+
+#endif // ORB_ENABLE_INTERNAL_VIEWER
